@@ -1,11 +1,9 @@
+import signal
+import sys
 import threading
 import time
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 
 CHROME_PATH = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
 USER_PROFILE_PATH = "C:\\Users\\ahmed\\AppData\\Local\\Google\\Chrome\\User Data"
@@ -15,6 +13,7 @@ class RLGTradeBumper:
     def __init__(self, trade_count):
         self.trade_count = trade_count
         self.timer = None
+        signal.signal(signal.SIGINT, self.stop)
 
     def run(self):
         self.driver = self.init_driver()
@@ -50,11 +49,19 @@ class RLGTradeBumper:
         self.driver.refresh()
         self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight/1.2);")
         self.timer = threading.Timer(902, self.bump_trades)
+        self.timer.setDaemon(True)
         self.timer.start()
 
-    def stop(self):
-        self.timer.cancel()
-        self.driver.quit()
+    def stop(self, *args):
+        print('Stopping the application...')
+        if self.timer:
+            self.timer.cancel()
+        if self.driver:
+            self.driver.quit()
+        sys.exit(0)
 
 if __name__ == '__main__':
-    RLGTradeBumper(15).run()
+    bumper = RLGTradeBumper(15)
+    bumper.run()
+    input("Press enter to exit the application...\n")
+    bumper.stop()
