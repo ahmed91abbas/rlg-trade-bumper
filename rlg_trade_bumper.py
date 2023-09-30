@@ -17,7 +17,6 @@ RLG_USERNAME = 'Momtazzz'
 
 class RLGTradeBumper:
     def __init__(self):
-        self.timer = None
         self.driver = None
         signal.signal(signal.SIGINT, self.stop)
 
@@ -51,8 +50,6 @@ class RLGTradeBumper:
                 self.driver.refresh()
             except NoSuchWindowException:
                 print("The main window has been closed. The application cannot proceed.")
-                if self.timer:
-                    self.timer.cancel()
                 return
             self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight);")
             bump_after_sec = self.get_wait_seconds_before_bump()
@@ -86,13 +83,11 @@ class RLGTradeBumper:
         for button in buttons:
             if button.text == 'Bump':
                 print(f"Bumping the trade with data alias {button.get_attribute('data-alias')}.")
-                button.click()
+                # button.click()
                 break
 
     def stop(self, *args):
         print('Stopping the application...')
-        if self.timer:
-            self.timer.cancel()
         if self.driver:
             self.driver.quit()
         sys.exit(0)
