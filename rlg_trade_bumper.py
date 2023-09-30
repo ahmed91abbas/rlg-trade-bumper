@@ -23,8 +23,8 @@ class RLGTradeBumper:
 
     def run(self):
         self.driver = self.init_driver()
+        self.main_window_handle = self.driver.current_window_handle
         self.wait = WebDriverWait(self.driver, 1)
-        self.driver.get(f'https://rocket-league.com/player/{RLG_USERNAME}')
         trade_thread = threading.Thread(target=self.trade_handler)
         trade_thread.daemon = True
         trade_thread.start()
@@ -37,9 +37,16 @@ class RLGTradeBumper:
         driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
         return driver
 
+    def switch_to_rlg_page(self):
+        self.driver.switch_to.window(self.main_window_handle)
+        profile_url = f'https://rocket-league.com/player/{RLG_USERNAME}'
+        if self.driver.current_url != profile_url:
+            self.driver.get(profile_url)
+
     def trade_handler(self):
         while True:
             try:
+                self.switch_to_rlg_page()
                 self.driver.refresh()
             except NoSuchWindowException:
                 print("The main window has been closed. The application cannot proceed.")
@@ -94,6 +101,7 @@ if __name__ == '__main__':
     try:
         bumper.run()
     except Exception as e:
+        print(type(e))
         print(e)
     finally:
         input("Press enter to exit the application...\n")
