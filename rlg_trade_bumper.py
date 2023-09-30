@@ -17,6 +17,7 @@ RLG_USERNAME = 'Momtazzz'
 
 class RLGTradeBumper:
     def __init__(self):
+        self.state_running = False
         self.driver = None
         signal.signal(signal.SIGINT, self.stop)
 
@@ -24,9 +25,7 @@ class RLGTradeBumper:
         self.driver = self.init_driver()
         self.main_window_handle = self.driver.current_window_handle
         self.wait = WebDriverWait(self.driver, 1)
-        trade_thread = threading.Thread(target=self.trade_handler)
-        trade_thread.daemon = True
-        trade_thread.start()
+        self.start()
 
     def init_driver(self):
         chrome_options = webdriver.ChromeOptions()
@@ -44,7 +43,7 @@ class RLGTradeBumper:
             self.driver.get(profile_url)
 
     def trade_handler(self):
-        while True:
+        while self.state_running:
             try:
                 self.switch_to_rlg_page()
                 self.driver.refresh()
@@ -53,10 +52,12 @@ class RLGTradeBumper:
                 return
             self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight);")
             bump_after_sec = self.get_wait_seconds_before_bump()
-            if bump_after_sec > 0:
-                time.sleep(bump_after_sec)
-            else:
-                self.bump_trade()
+            while bump_after_sec > 0:
+                if not self.state_running:
+                    return
+                time.sleep(1)
+                bump_after_sec -= 1
+            self.bump_trade()
 
     def get_wait_seconds_before_bump(self):
         element = self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'rlg-trade__time')))
@@ -83,22 +84,51 @@ class RLGTradeBumper:
         for button in buttons:
             if button.text == 'Bump':
                 print(f"Bumping the trade with data alias {button.get_attribute('data-alias')}.")
-                # button.click()
+                button.click()
                 break
 
+    def start(self):
+        print('Starting the application...')
+        self.state_running = True
+        self.trade_thread = threading.Thread(target=self.trade_handler)
+        self.trade_thread.daemon = True
+        self.trade_thread.start()
+
+    def pause(self):
+        print('Pausing the application...')
+        self.state_running = False
+        self.trade_thread.join()
+
     def stop(self, *args):
+        self.pause()
         print('Stopping the application...')
         if self.driver:
             self.driver.quit()
         sys.exit(0)
 
+    def get_state_text(self):
+        return 'running' if self.state_running else 'paused'
+
 if __name__ == '__main__':
     bumper = RLGTradeBumper()
+    commands = {
+        'pause': bumper.pause,
+        'start': bumper.start,
+        'stop': bumper.stop,
+        'state': lambda: print(f"The application is currently {bumper.get_state_text()}.")
+    }
     try:
         bumper.run()
     except Exception as e:
         print(type(e))
         print(e)
-    finally:
-        input("Press enter to exit the application...\n")
         bumper.stop()
+
+    while True:
+        command = input(f"Enter a command ({', '.join(commands.keys())}) or press Enter to exit:\n").lower().strip("\r\n")
+        if command == '':
+            bumper.stop()
+        elif command in commands:
+            commands[command]()
+        else:
+            print(f"Command '{command}' not supported.")
