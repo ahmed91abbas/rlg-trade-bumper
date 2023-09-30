@@ -34,6 +34,7 @@ class RLGTradeBumper:
         chrome_options.binary_location = CHROME_PATH
         chrome_options.add_argument(f'--user-data-dir={USER_PROFILE_PATH}')
         chrome_options.add_argument("--log-level=3")
+        chrome_options.add_argument("--start-maximized")
         driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
         return driver
 
