@@ -64,14 +64,14 @@ class RLGTradeBumper:
         span_element = element.find_element_by_tag_name('span')
         trade_age_text = span_element.text
         wait_for = 0
-        if 'hours' in trade_age_text:
+        if 'hour' in trade_age_text:
             wait_for = 0
-        elif 'minutes' in trade_age_text:
-            match = re.search(r'(\d+) minutes', trade_age_text)
+        elif 'minute' in trade_age_text:
+            match = re.search(r'(\d+) minute', trade_age_text)
             minutes = int(match.group(1))
             wait_for = (15 - minutes) * 60 if minutes < 15 else 0
-        elif 'seconds' in trade_age_text:
-            match = re.search(r'(\d+) seconds', trade_age_text)
+        elif 'second' in trade_age_text:
+            match = re.search(r'(\d+) second', trade_age_text)
             seconds = int(match.group(1))
             wait_for = 900 - seconds
         else:
