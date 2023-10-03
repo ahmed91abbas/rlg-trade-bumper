@@ -12,8 +12,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 CHROME_PATH = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
-USER_PROFILE_PATH = "C:\\Users\\ahmed\\AppData\\Local\\Google\\Chrome\\User Data"
-RLG_USERNAME = 'Momtazzz'
+USER_PROFILE_PATH = "C:\\Users\\ahmed\\AppData\\Local\\Google\\Chrome\\User Data" # Change this to your user
+RLG_USERNAME = 'Momtazzz' # Change this to your RLG username
 
 class RLGTradeBumper:
     def __init__(self):
@@ -64,7 +64,7 @@ class RLGTradeBumper:
         span_element = element.find_element_by_tag_name('span')
         trade_age_text = span_element.text
         wait_for = 0
-        if 'hour' in trade_age_text:
+        if 'hour' in trade_age_text or 'day' in trade_age_text:
             wait_for = 0
         elif 'minute' in trade_age_text:
             match = re.search(r'(\d+) minute', trade_age_text)
